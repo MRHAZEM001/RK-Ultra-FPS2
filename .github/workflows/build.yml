@@ -1,1 +1,48 @@
 
+name: Build RK Ultra FPS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**'
+      - '!README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Find project and build
+        run: |
+          set -eux
+          ls -la
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew build
+          elif [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+            gradle build
+          else
+            echo "Khong tim thay Gradle project. Hay upload va giai nen source ZIP truoc."
+            exit 1
+          fi
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: RK-Ultra-FPS-JAR
+          path: '**/build/libs/*.jar'
+          if-no-files-found: error
+          
